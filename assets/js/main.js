@@ -1,47 +1,96 @@
+// const convertTypes = (pokemonTypes) => {
+//     return pokemonTypes.map((typeSlot) => `<li class="type">${typeSlot.type}</li>`)
+// }
+
 const pokemonList = document.getElementById('pokemonList')
 const loadMoreButton = document.getElementById('loadMoreButton')
 
-const maxRecords = 151
-const limit = 10
-let offset = 0;
+let offset = 0
+let limit = 151
 
-function convertPokemonToLi(pokemon) {
+const convertPokemon = (pokemon) => {
+    let num = pokemon.num.toString()
     return `
-        <li class="pokemon ${pokemon.type}">
-            <span class="number">#${pokemon.number}</span>
-            <span class="name">${pokemon.name}</span>
-
-            <div class="detail">
+    <li class="pokemon ${pokemon.type}" id="${pokemon.name}"  onclick="findId(event)">
+            <div class="title" id="${pokemon.name}">
+                <span class="name" id="${pokemon.name}">${pokemon.name}</span>
+                <span class="number" id="${pokemon.name}">#${num.padStart(3,'0')}</span>
+            </div>
+            <div class="detail" id="${pokemon.name}">
                 <ol class="types">
-                    ${pokemon.types.map((type) => `<li class="type ${type}">${type}</li>`).join('')}
+                    ${pokemon.types.map((type) => `<li class='type'>${type}</li>`).join('')}
                 </ol>
-
-                <img src="${pokemon.photo}"
-                     alt="${pokemon.name}">
+                <img src="assets/img/pokemons/poke_${num}.gif" alt="${pokemon.name}" id="${pokemon.name}">
             </div>
         </li>
     `
 }
 
-function loadPokemonItens(offset, limit) {
-    pokeApi.getPokemons(offset, limit).then((pokemons = []) => {
-        const newHtml = pokemons.map(convertPokemonToLi).join('')
-        pokemonList.innerHTML += newHtml
+const createStats = (pokemon) => {
+    return `
+    <div class="pokemonStats ${pokemon.type}" id="${pokemon.name + 'stat'}" onclick="closeStats(event)">
+        <h1>${pokemon.name}</h1>
+        <ol class="types">
+            ${pokemon.types.map((type) => `<li class='type'>${type}</li>`).join('')}
+        </ol>
+        <img class="pokeIcon" src="assets/img/pokemons/poke_${pokemon.num}.gif" alt="${pokemon.name}">
+        <img class="pokeball" src="assets/img/pokeball.png" alt="pokeball">
+        <div class="stats">
+            <div>
+                <h3>HP</h3>
+                <h4>${pokemon.hp}</h4>
+            </div>
+            <div>
+                <h3>Speed</h3>
+                <h4>${pokemon.speed}</h4>
+            </div>
+            <div>
+                <h3>Attack</h3>
+                <h4>${pokemon.attack}</h4>
+            </div>
+            <div>
+                <h3>Defense</h3>
+                <h4>${pokemon.defense}</h4>
+            </div>
+            <div>
+                <h3>Special Attack</h3>
+                <h4>${pokemon.sa}</h4>
+            </div>
+            <div>
+                <h3>Special Defense</h3>
+                <h4>${pokemon.sd}</h4>
+            </div>
+        </div>
+    </div>
+    `
+}
+
+const showStats = (id) => {
+    pokemonList.innerHTML += createStats(pokemonsLists[id])
+}
+
+const findId = (event) => {
+    showStats(event.target.id)
+}
+
+const closeStats = (event) => {
+    let idElement = event.target.id
+    console.log(idElement)
+    let element = document.getElementById(idElement)
+    let paiElement = element.parentNode
+    paiElement.removeChild(element)
+}
+
+const loadMore = (offset, limit) => {
+    PokeApi.getPokemons(offset, limit).then((pokemons) => {
+        pokemonList.innerHTML = pokemons.map(convertPokemon).join('')
     })
 }
 
-loadPokemonItens(offset, limit)
+loadMore(offset, limit)
 
-loadMoreButton.addEventListener('click', () => {
-    offset += limit
-    const qtdRecordsWithNexPage = offset + limit
-
-    if (qtdRecordsWithNexPage >= maxRecords) {
-        const newLimit = maxRecords - offset
-        loadPokemonItens(offset, newLimit)
-
-        loadMoreButton.parentElement.removeChild(loadMoreButton)
-    } else {
-        loadPokemonItens(offset, limit)
-    }
+loadMoreButton.addEventListener('click' , () => {
+    limit = limit * 2
+    loadMore(offset, limit)
 })
+
